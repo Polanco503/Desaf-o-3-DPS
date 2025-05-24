@@ -2,12 +2,14 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Text, Button, Card } from "react-native-paper";
-import { firestore } from "../firebase"; // API modular
+// se importa firestore desde la configuración
+import { firestore } from "../firebase";
 
 export default function DetallePantalla({ route, navigation }) {
-  const { libro } = route.params;
-  const [eliminando, setEliminando] = useState(false);
+  const { libro } = route.params; // se recibe el libro desde la navegación
+  const [eliminando, setEliminando] = useState(false); // estado de carga al eliminar
 
+  // función para eliminar el libro con confirmación
   const eliminarLibro = () => {
     Alert.alert(
       "Eliminar libro",
@@ -21,7 +23,7 @@ export default function DetallePantalla({ route, navigation }) {
             try {
               setEliminando(true);
               await firestore.collection("libros").doc(libro.id).delete();
-              navigation.goBack();
+              navigation.goBack(); // vuelve a la pantalla anterior
             } catch {
               Alert.alert("Error", "No se pudo eliminar el libro.");
             } finally {
@@ -38,15 +40,18 @@ export default function DetallePantalla({ route, navigation }) {
       <Card>
         <Card.Title title={libro.titulo} subtitle={libro.autor} />
         <Card.Content>
+          {/* muestra los datos solo si existen */}
           <Text>Estado: {libro.estado}</Text>
           {libro.fechaInicio && <Text>Fecha de inicio: {libro.fechaInicio}</Text>}
           {libro.fechaFin   && <Text>Fecha de fin:    {libro.fechaFin}</Text>}
           {libro.comentario && <Text>Comentario:      {libro.comentario}</Text>}
         </Card.Content>
         <Card.Actions>
+          {/* botón para editar el libro */}
           <Button onPress={() => navigation.navigate("EditarLibro", { libro })}>
             Editar
           </Button>
+          {/* botón para eliminar el libro */}
           <Button
             onPress={eliminarLibro}
             textColor="red"
@@ -57,6 +62,7 @@ export default function DetallePantalla({ route, navigation }) {
           </Button>
         </Card.Actions>
       </Card>
+      {/* botón para volver atrás */}
       <Button style={styles.btnVolver} onPress={() => navigation.goBack()}>
         Volver
       </Button>

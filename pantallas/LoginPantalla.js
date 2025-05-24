@@ -2,22 +2,25 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
-import { auth } from "../firebase"; // RNFirebase
+// firebase auth
+import { auth } from "../firebase";
 
 export default function LoginPantalla({ navigation }) {
+  // estados para los campos y el control del formulario
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
 
+  // función para iniciar sesión con firebase
   const login = async () => {
     setError("");
     setCargando(true);
     try {
       await auth.signInWithEmailAndPassword(correo, clave);
-      // La navegación la maneja onAuthStateChanged en NavegacionPrincipal
+      // la redirección se hace desde NavegacionPrincipal con onAuthStateChanged
     } catch (e) {
-      // Manejo de errores específicos de Firebase Auth
+      // manejo de errores comunes
       switch (e.code) {
         case "auth/user-not-found":
           setError("El correo no está registrado.");
@@ -41,7 +44,10 @@ export default function LoginPantalla({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* título */}
       <Text variant="headlineMedium">Iniciar Sesión</Text>
+
+      {/* campo de correo */}
       <TextInput
         label="Correo"
         value={correo}
@@ -51,6 +57,8 @@ export default function LoginPantalla({ navigation }) {
         style={styles.input}
         disabled={cargando}
       />
+
+      {/* campo de contraseña */}
       <TextInput
         label="Contraseña"
         value={clave}
@@ -59,7 +67,11 @@ export default function LoginPantalla({ navigation }) {
         style={styles.input}
         disabled={cargando}
       />
+
+      {/* error si hay */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {/* botón de login */}
       <Button
         mode="contained"
         onPress={login}
@@ -69,6 +81,8 @@ export default function LoginPantalla({ navigation }) {
       >
         Ingresar
       </Button>
+
+      {/* enlace a pantalla de registro */}
       <Button
         onPress={() => navigation.navigate("Registro")}
         disabled={cargando}

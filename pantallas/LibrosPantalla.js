@@ -5,6 +5,7 @@ import { IconButton } from 'react-native-paper';
 import { Text, FAB, Appbar, Card } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
+// se importan auth y firestore
 import { auth, firestore } from "../firebase";
 import {
   collection,
@@ -14,34 +15,36 @@ import {
 } from "@react-native-firebase/firestore";
 
 export default function LibrosPantalla() {
-  const [libros, setLibros] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [libros, setLibros] = useState([]); // lista de libros del usuario
+  const [cargando, setCargando] = useState(true); // estado de carga
   const navigation = useNavigation();
 
   useEffect(() => {
     const usuario = auth.currentUser;
     if (!usuario) return;
 
-    // Construye la query modular
+    // consulta libros del usuario actual
     const q = query(
       collection(firestore, "libros"),
       where("uid", "==", usuario.uid)
     );
 
-    // Realtime listener modular
+    // escucha en tiempo real los cambios
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setLibros(data);
       setCargando(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe(); // limpieza al desmontar
   }, []);
 
+  // cerrar sesión
   const cerrarSesion = async () => {
     await auth.signOut();
   };
 
+  // muestra mensaje mientras carga
   if (cargando) {
     return (
       <View style={styles.cargando}>
@@ -52,16 +55,19 @@ export default function LibrosPantalla() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* barra superior con botón para cerrar sesión */}
       <Appbar.Header>
         <IconButton icon="door-closed" onPress={cerrarSesion}/>
         <Appbar.Content title="Mis libros" />
       </Appbar.Header>
 
+      {/* mensaje si no hay libros */}
       {libros.length === 0 ? (
         <View style={styles.cargando}>
           <Text>No hay libros agregados.</Text>
         </View>
       ) : (
+        // lista de libros si hay datos
         <FlatList
           data={libros}
           keyExtractor={(item) => item.id}
@@ -82,6 +88,7 @@ export default function LibrosPantalla() {
         />
       )}
 
+      {/* botón flotante para agregar libro */}
       <FAB
         style={styles.fab}
         icon="plus"

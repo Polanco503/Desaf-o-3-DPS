@@ -2,18 +2,21 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
+// firebase modular auth
 import { getAuth, createUserWithEmailAndPassword } from "@react-native-firebase/auth";
 import { getApp } from "@react-native-firebase/app";
 
 export default function RegistroPantalla({ navigation }) {
-  const [correo, setCorreo]   = useState("");
-  const [clave,  setClave]    = useState("");
-  const [error,  setError]    = useState("");
+  // estados para formulario
+  const [correo, setCorreo] = useState("");
+  const [clave, setClave] = useState("");
+  const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
 
-  // Obtén la instancia de Auth de la app por defecto
+  // instancia de auth de la app
   const auth = getAuth(getApp());
 
+  // función para registrar usuario
   const registrar = async () => {
     setError("");
     if (!correo.trim() || !clave.trim()) {
@@ -27,17 +30,17 @@ export default function RegistroPantalla({ navigation }) {
 
     setCargando(true);
     try {
-      // 🚀 Esta es la llamada correcta a la API modular:
+      // registro con firebase auth
       const userCred = await createUserWithEmailAndPassword(
         auth,
         correo.trim(),
         clave
       );
       console.log("Usuario registrado:", userCred.user.uid);
-      // onAuthStateChanged en NavegacionPrincipal se encargará de navegar
+      // navegación se maneja desde NavegacionPrincipal
     } catch (e) {
       console.error("Error registrando usuario:", e);
-      // Maneja códigos de error específicos:
+      // errores comunes de firebase
       switch (e.code) {
         case "auth/email-already-in-use":
           setError("El correo ya está registrado.");
@@ -61,7 +64,10 @@ export default function RegistroPantalla({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* título de pantalla */}
       <Text variant="headlineMedium">Registro</Text>
+
+      {/* campo de correo */}
       <TextInput
         label="Correo"
         value={correo}
@@ -71,6 +77,8 @@ export default function RegistroPantalla({ navigation }) {
         style={styles.input}
         disabled={cargando}
       />
+
+      {/* campo de contraseña */}
       <TextInput
         label="Contraseña"
         value={clave}
@@ -79,7 +87,11 @@ export default function RegistroPantalla({ navigation }) {
         style={styles.input}
         disabled={cargando}
       />
+
+      {/* mensaje de error si hay */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {/* botón de registro */}
       <Button
         mode="contained"
         onPress={registrar}
@@ -89,6 +101,8 @@ export default function RegistroPantalla({ navigation }) {
       >
         Registrarse
       </Button>
+
+      {/* ir a login */}
       <Button
         onPress={() => navigation.navigate("Login")}
         disabled={cargando}

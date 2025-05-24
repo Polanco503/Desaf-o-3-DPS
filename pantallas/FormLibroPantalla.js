@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { TextInput, Button, Text, RadioButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+// firebase para auth y base de datos
 import { auth, firestore } from '../firebase';
 import {
   collection,
@@ -13,9 +14,10 @@ import {
 } from '@react-native-firebase/firestore';
 
 export default function FormLibroPantalla({ navigation, route }) {
-  const libro = route.params?.libro;
+  const libro = route.params?.libro; // se recibe el libro si se va a editar
   const esEditar = !!libro;
 
+  // estados para los campos del formulario
   const [titulo, setTitulo] = useState(libro?.titulo || '');
   const [autor, setAutor] = useState(libro?.autor || '');
   const [estado, setEstado] = useState(libro?.estado || 'por leer');
@@ -25,59 +27,62 @@ export default function FormLibroPantalla({ navigation, route }) {
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
 
+  // cambia el título de la pantalla según el modo
   useEffect(() => {
     navigation.setOptions({
       title: esEditar ? 'Editar Libro' : 'Agregar Libro',
     });
   }, []);
 
+  // guarda o actualiza el libro en firestore
   const guardarLibro = async () => {
-  setError('');
-  if (!titulo.trim() || !autor.trim()) {
-    setError('El título y autor son obligatorios.');
-    return;
-  }
-  if (!auth.currentUser) {
-    setError('No hay usuario autenticado.');
-    return;
-  }
-
-  setGuardando(true);
-  try {
-    if (esEditar) {
-      const refLibro = doc(firestore, 'libros', libro.id);
-      await updateDoc(refLibro, { titulo, autor, estado, fechaInicio, fechaFin, comentario });
-    } else {
-      const col = collection(firestore, 'libros');
-      await addDoc(col, {
-        uid: auth.currentUser.uid,
-        titulo,
-        autor,
-        estado,
-        fechaInicio,
-        fechaFin,
-        comentario,
-        creado: serverTimestamp(),
-      });
+    setError('');
+    if (!titulo.trim() || !autor.trim()) {
+      setError('El título y autor son obligatorios.');
+      return;
     }
-    
-    setGuardando(false);
-    navigation.goBack();
+    if (!auth.currentUser) {
+      setError('No hay usuario autenticado.');
+      return;
+    }
 
-  } catch (e) {
-    console.error(e);
-    setError('No se pudo guardar el libro.');
-    setGuardando(false);
-  }
-};
+    setGuardando(true);
+    try {
+      if (esEditar) {
+        const refLibro = doc(firestore, 'libros', libro.id);
+        await updateDoc(refLibro, { titulo, autor, estado, fechaInicio, fechaFin, comentario });
+      } else {
+        const col = collection(firestore, 'libros');
+        await addDoc(col, {
+          uid: auth.currentUser.uid,
+          titulo,
+          autor,
+          estado,
+          fechaInicio,
+          fechaFin,
+          comentario,
+          creado: serverTimestamp(),
+        });
+      }
 
+      setGuardando(false);
+      navigation.goBack(); // vuelve a la pantalla anterior
+
+    } catch (e) {
+      console.error(e);
+      setError('No se pudo guardar el libro.');
+      setGuardando(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* título de la pantalla */}
       <Text variant="headlineMedium" style={{ marginBottom: 12 }}>
         {esEditar ? 'Editar Libro' : 'Nuevo Libro'}
       </Text>
 
+      {/* campos del formulario */}
       <TextInput
         label="Título"
         value={titulo}
@@ -93,6 +98,7 @@ export default function FormLibroPantalla({ navigation, route }) {
         disabled={guardando}
       />
 
+      {/* selector de estado */}
       <Text style={{ marginTop: 10 }}>Estado:</Text>
       <RadioButton.Group onValueChange={setEstado} value={estado}>
         <View style={styles.radioRow}>
@@ -102,6 +108,7 @@ export default function FormLibroPantalla({ navigation, route }) {
         </View>
       </RadioButton.Group>
 
+      {/* campos opcionales */}
       <TextInput
         label="Fecha de inicio (opcional)"
         value={fechaInicio}
@@ -128,8 +135,10 @@ export default function FormLibroPantalla({ navigation, route }) {
         disabled={guardando}
       />
 
+      {/* error si existe */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
+      {/* botones de acción */}
       <Button
         mode="contained"
         onPress={guardarLibro}
