@@ -1,10 +1,17 @@
 // pantallas/LibrosPantalla.js
 import React, { useEffect, useState } from "react";
 import { View, FlatList, StyleSheet } from "react-native";
+import { IconButton } from 'react-native-paper';
 import { Text, FAB, Appbar, Card } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
 import { auth, firestore } from "../firebase";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot
+} from "@react-native-firebase/firestore";
 
 export default function LibrosPantalla() {
   const [libros, setLibros] = useState([]);
@@ -15,21 +22,24 @@ export default function LibrosPantalla() {
     const usuario = auth.currentUser;
     if (!usuario) return;
 
-    // Suscripción a Firestore para los libros del usuario
-    const unsubscribe = firestore()
-      .collection("libros")
-      .where("uid", "==", usuario.uid)
-      .onSnapshot((snap) => {
-        const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setLibros(data);
-        setCargando(false);
-      });
+    // Construye la query modular
+    const q = query(
+      collection(firestore, "libros"),
+      where("uid", "==", usuario.uid)
+    );
+
+    // Realtime listener modular
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setLibros(data);
+      setCargando(false);
+    });
 
     return () => unsubscribe();
   }, []);
 
   const cerrarSesion = async () => {
-    await auth().signOut();
+    await auth.signOut();
   };
 
   if (cargando) {
@@ -43,8 +53,8 @@ export default function LibrosPantalla() {
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header>
+        <IconButton icon="door-closed" onPress={cerrarSesion}/>
         <Appbar.Content title="Mis libros" />
-        <Appbar.Action icon="logout" onPress={cerrarSesion} />
       </Appbar.Header>
 
       {libros.length === 0 ? (
@@ -58,7 +68,9 @@ export default function LibrosPantalla() {
           renderItem={({ item }) => (
             <Card
               style={styles.card}
-              onPress={() => navigation.navigate("Detalle", { libro: item })}
+              onPress={() =>
+                navigation.navigate("Detalle", { libro: item })
+              }
             >
               <Card.Title title={item.titulo} subtitle={item.autor} />
               <Card.Content>

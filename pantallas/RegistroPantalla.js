@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
-// ✅ Imports de la API modular:
 import { getAuth, createUserWithEmailAndPassword } from "@react-native-firebase/auth";
 import { getApp } from "@react-native-firebase/app";
 

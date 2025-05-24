@@ -1,6 +1,8 @@
 // firebase.js
+import { getApp } from "@react-native-firebase/app";
 import { getAuth } from '@react-native-firebase/auth';
 import { getFirestore } from '@react-native-firebase/firestore';
 
-export const auth = getAuth();        // ya no es una función, es un objeto
-export const firestore = getFirestore();
+const app = getApp();
+export const auth = getAuth(app);
+export const firestore = getFirestore(app);
